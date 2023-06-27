@@ -18,7 +18,51 @@ const Tour = require('./../models/tourModel');
 
 exports.getalltour = async (req, res)=>{
     try{
-        const tours = await Tour.find();
+        //  Removing unwanted query
+        const queryObj = {...req.query};
+        const excludedField = ['page', 'sort', 'limit', 'fields'];
+        excludedField.forEach(el => delete queryObj[el]);
+
+        //advance filtering
+        let querystr = JSON.stringify(queryObj);
+        querystr = querystr.replace(/\b(gte|gt|lt|lte)\b/g, match => `$${match}`); 
+        
+        // set Query
+        let query = Tour.find(JSON.parse(querystr));
+
+        //sort query
+        if(req.query.sort){
+            const sortby = req.query.sort.split(',').join(" ");
+            query = query.sort(sortby);
+        }
+        else{
+            query = query.sort('-createdAt');
+        }
+
+        //query limiting
+        if(req.query.fields){
+            const queryfield = req.query.fields.split(",").join(" ");
+            query = query.select(queryfield)
+        }
+        else{
+            query = query.select('-__v')  //- means excluding this field
+        }
+        //paging and limiting
+        const page = req.query.page * 1 || 1;
+        const limit = req.query.limit * 1 || 100;
+        const skip  = (page - 1)*limit;
+
+        //setting pagging
+        query = query.skip(skip).limit(limit);
+        
+        if(req.query.page){
+           const totaldocument = await Tour.countDocuments();
+           if(skip >= totaldocument) throw new Error('this page does not exist')
+        }
+
+        // execute Query
+        const tours = await query;
+
     res.status(200).json({
         status: 'success',
         results: tours.length,
@@ -27,10 +71,10 @@ exports.getalltour = async (req, res)=>{
         }
     })
 
-}   catch(err) {
+}catch(err) {
         res.status(404).json({
             status: 'fail',
-            message: err 
+            message: err.message
         })
     }
 }
@@ -103,7 +147,7 @@ exports.deleteatour = async (req, res)=>{
         const tours = await Tour.findByIdAndDelete(req.params.id)
         res.status(204).json({                  //204 means no data to return
             status: 'success',
-            data: "deleted"
+            data: null
         })    
     } catch (err) {
         res.status(400).json({
