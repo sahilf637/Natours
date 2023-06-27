@@ -12,10 +12,10 @@ app.use(morgan('dev'))             //3rd party middleware :- give information ab
 
 app.use(express.json());        //  express.jon is a middleware that can moddify the incoming data
  
-app.use(( req, res, next) => {
-    console.log('hello there');
-    next();                          //has to use next in order for the cycle to proceed   
-})
+// app.use(( req, res, next) => {
+//     console.log('hello there');
+//     next();                          //has to use next in order for the cycle to proceed   
+// })
 
 
 
