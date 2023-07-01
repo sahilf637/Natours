@@ -8,6 +8,8 @@ const tourRouter = express.Router();
 
 tourRouter.route('/getTourStats').get(tourController.getTourStats);
 
+tourRouter.route('/getMonthlyPlan/:Year').get(tourController.getMonthlyPlan);
+
 tourRouter.route('/get-5-cheap').get(tourController.aliasTopTours, tourController.getalltour);
 
 tourRouter.route('/').get(tourController.getalltour).post(tourController.addatour);

@@ -139,20 +139,74 @@ exports.getTourStats = async (req, res) => {
             },
             {
                 $group:{
-                _id: null,
-                numTours: { $sum: 1 },
-                NumRatings: { $sum: '$ratingsQuantity' },
-                avgRating: { $avg: '$ratingsAverage' },
-                avgPrice: { $avg: '$price' },
-                minPrice: { $min: '$price' },
-                maxPrice: { $max: '$price' }
-            }
+                    _id: { $toUpper: "$difficulty"},
+                    numTours: { $sum: 1 },
+                    NumRatings: { $sum: '$ratingsQuantity' },
+                    avgRating: { $avg: '$ratingsAverage' },
+                    avgPrice: { $avg: '$price' },
+                    minPrice: { $min: '$price' },
+                    maxPrice: { $max: '$price' }
+                }
+            },
+            {
+                $sort: { avgPrice: 1 }
+            },
+            {
+                $match: { _id: { $ne: 'EASY' } }
             }
         ])
         res.status(200).json({                  //204 means no data to return
             status: 'success',
             data: stats
         }) 
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err
+        })
+    }
+}
+
+exports.getMonthlyPlan = async (req, res) => {
+    try {
+        const year = req.params.Year * 1;
+        const Plan = await Tour.aggregate([
+            {
+                $unwind: '$startDates'
+            },
+            {
+                $match: {
+                    startDates: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { $month: '$startDates' },
+                    numOfTours: { $sum: 1 },
+                    tours: { $push: '$name' }
+                }
+            },
+            {
+                $addFields: { Month : '$_id' }
+            },
+            {
+                $project: { _id: 0 }
+            },
+            {
+                $sort: { numOfTours: -1 }
+            },
+            {
+                $limit: 12
+            }
+        ])
+
+        res.status(200).json({
+            status: 'success',
+            data: Plan
+        })
     } catch (err) {
         res.status(400).json({
             status: 'fail',
