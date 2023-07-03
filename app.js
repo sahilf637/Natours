@@ -1,49 +1,31 @@
 const express = require('express');
 const morgan = require('morgan');
+const dotenv = require('dotenv')
+const AppError = require('./utils/appError')
 const tourRouter = require('./routes/tourRoute')
 const userRouter = require('./routes/userRoute')
-
+const globalErrorHandler = require('./Controller/errorController')
 
 const app = express();
+dotenv.config({ path: './config.env'}); 
 
 //MIDDLEWARES
 
-app.use(morgan('dev'))             //3rd party middleware :- give information about the different request
+if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+}                                                   //3rd party middleware :- give information about the different request
 
-app.use(express.json());        //  express.jon is a middleware that can moddify the incoming data
- 
-// app.use(( req, res, next) => {
-//     console.log('hello there');
-//     next();                          //has to use next in order for the cycle to proceed   
-// })
-
-
-
-// //GET REQUEST
-
-// app.get('/api/v1/tours', getalltour)
-
-// app.get('/api/v1/tours/:id', getatour)
-
-// //POST REQUEST
-
-// app.post('/api/v1/tours', addatour )
-
-// //PATCH REQUEST
-// app.patch('/api/v1/tours/:id', updateatour)
-
-// //DELETE REQUEST
-// app.delete('/api/v1/tours/:id', deleteatour)
-
-// app.route('/api/v1/tours').get(getalltour).post(addatour);
-
-// app.route('/api/v1/tours/:id').get(getatour).patch(updateatour).delete(deleteatour); 
-
+app.use(express.json());
+app.use(express.static(`${__dirname}/public`));      //  express.jon is a middleware that can moddify the incoming data
 
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);               //mounting a new router on a route
 
+app.all('*', (req, res, next) => {
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+})
 
+app.use(globalErrorHandler);
 
 module.exports = app;
