@@ -14,7 +14,7 @@ const handleDuplicateFields = err => {
 
 const handleValidationError = err => {
     const mess = Object.values(err.errors).map(el => el.message);
-    const message = `Invalid input data:-   ${mess.join('. ')}`; 
+    const message = `Invalid input data:- ${mess.join('. ')}`; 
     return new AppError(message, 400)
 }
 
