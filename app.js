@@ -15,6 +15,12 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }                                                   //3rd party middleware :- give information about the different request
 
+app.use((req, res, next) => {
+    req.requestTime = new Date().toISOString();
+    console.log(req.header);
+    next();
+})
+
 app.use(express.json());
 app.use(express.static(`${__dirname}/public`));      //  express.jon is a middleware that can moddify the incoming data
 
