@@ -13,6 +13,10 @@ userRouter.route('/resetPassword/:token').patch(authController.resetPassword);
 
 userRouter.route('/updateMyPassword').patch(authController.protect,authController.updatePassword);
 
+userRouter.route('/updateMe').patch(authController.protect,userController.updateMe);
+
+userRouter.route('/deleteMe').delete(authController.protect,userController.deleteMe);
+
 userRouter.route('/').get(userController.getalluser).post(userController.addauser);
 
 userRouter.route('/:id').get(userController.getauser).patch(userController.updateauser).delete(userController.deleteauser);

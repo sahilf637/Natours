@@ -5,6 +5,11 @@ const AppError = require('./utils/appError')
 const tourRouter = require('./routes/tourRoute')
 const userRouter = require('./routes/userRoute')
 const globalErrorHandler = require('./Controller/errorController')
+const rateLimit = require('express-rate-limit')
+const helmet = require('helmet')
+const mongoSanitize = require('express-mongo-sanitize')
+const xss = require('xss-clean')
+const hpp = require('hpp')
 
 const app = express();
 dotenv.config({ path: './config.env'}); 
@@ -21,7 +26,28 @@ app.use((req, res, next) => {
     next();
 })
 
-app.use(express.json());
+const limiter = rateLimit({                 //limits the rate of request for an IP so the brute force attacks dont work
+    max: 100,
+    windowMs: 60 * 60 * 1000,
+    message: 'Too many requests from this IP, Please try again in an hour'
+})
+
+app.use('/api', limiter)
+
+app.use(helmet())  //setting http secuty heads
+
+app.use(express.json({ Limit: '10kb' }));        //body parser, reading data from body to req.body
+
+//data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+
+//Data sanitization against xss // psuhing some html and js data to dbs
+app.use(xss());
+
+app.use(hpp({
+    whitelist: ['duration','ratingsAverage','ratingsQuantity','maxGroupSize']
+}));     //prevents parameter polution(adding multiple parameter into params)
+
 app.use(express.static(`${__dirname}/public`));      //  express.jon is a middleware that can moddify the incoming data
 
 
