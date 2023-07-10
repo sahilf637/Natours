@@ -50,7 +50,7 @@ res.status(200).json({
 
 
 exports.getatour = catchAsync(async (req,res, next) => {        //:id is an variable here
-    const tours = await Tour.findById(req.params.id)  //findOne({_id: req.params.id})
+    const tours = await Tour.findById(req.params.id); //findOne({_id: req.params.id})
     if(!tours){
         return next( new AppError('No tour found with that ID', 404))
     }   

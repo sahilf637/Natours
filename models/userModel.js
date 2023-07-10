@@ -63,7 +63,7 @@ userSchema.pre(/^find/, function(next){
     this.find({ active: { $ne: false } });
     next();
 })
-
+ 
 userSchema.pre('save', function(next){
     if(!this.isModified('password') || this.isNew) return next();
 

@@ -18,7 +18,7 @@ mongoose.connect(DB, {
 })
 
 //file reading
-const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8'));
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
 
 //IMPORT DATA INTO DATA BASE
 
@@ -43,10 +43,9 @@ const delete_data = async () => {
 }
 if(process.argv[2] === '--import'){
     import_data();
-    process.exit();
+    console.log("data successfully uploaded");
 }
 if(process.argv[2] === '--delete'){
     delete_data();
-    process.exit();
 }
 console.log(process.argv);
