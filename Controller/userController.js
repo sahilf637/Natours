@@ -2,6 +2,7 @@ const { filter } = require('lodash');
 const User = require('./../models/userModel')
 const AppError = require('./../utils/appError')
 const catchAsync = require('./../utils/catchAsync');
+const factory = require('./handlerFactory')
 
 const filterObj = (obj, ...allowedFields) => {
     const newObj = {};
@@ -11,42 +12,10 @@ const filterObj = (obj, ...allowedFields) => {
     return newObj;
 }
 
-exports.getalluser = catchAsync( async (req, res)=>{
-const users = await User.find();
-
-res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data:{
-        users
-    }
-})
-})
-
-exports.getauser = (req,res) => {        //:id is an variable here
-    res.status(500).json({
-        message: "Route un defined"
-    })
+exports.getMe = (req, res, next) => {
+    req.params.id = req.user.id;
+    next();
 }
-
-exports.addauser = (req, res) => {       //express doesnt put data on req, we use middleware for it
-    res.status(500).json({
-        message: "Route un defined"
-    })
-}
-
-exports.updateauser =  (req, res) => {
-    res.status(500).json({
-        message: "Route un defined"
-    })
-}
-
-exports.deleteauser =  (req, res)=>{
-    res.status(500).json({
-        message: "Route un defined"
-    })
-}
-
 
 exports.updateMe =  catchAsync(async (req, res, next) => {
     //create error if user POSTs password data
@@ -76,3 +45,13 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
         data:null
     })
 })
+
+exports.getalluser = factory.getAll(User)
+
+exports.getauser = factory.getOne(User)
+
+exports.addauser = factory.createOne(User)
+
+exports.updateauser =  factory.updateOne(User)
+
+exports.deleteauser =  factory.deleteOne(User)

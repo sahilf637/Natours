@@ -29,7 +29,7 @@ const import_data = async () => {
     } catch (err) {
       console.log(err);
     }
-}
+} 
 
 //Deleting all data
 

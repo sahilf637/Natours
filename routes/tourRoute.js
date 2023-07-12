@@ -1,19 +1,26 @@
 const express = require('express')
 const tourController = require('./../Controller/tourController')
 const authController = require('./../Controller/authController')
+const reviewRouter = require('./reviewRoute')
 
 const tourRouter = express.Router();
 
 // tourRouter.param('id',tourController.checkID)
 
-tourRouter.route('/getTourStats').get(tourController.getTourStats);
+tourRouter.use('/:tourId/reviews', reviewRouter)
 
-tourRouter.route('/getMonthlyPlan/:Year').get(tourController.getMonthlyPlan);
+tourRouter.route('/getTourStats').get(tourController.getTourStats);
+  
+tourRouter.route('/getMonthlyPlan/:Year').get(authController.protect,tourController.getMonthlyPlan)
 
 tourRouter.route('/get-5-cheap').get(tourController.aliasTopTours, tourController.getalltour);
 
-tourRouter.route('/').get(authController.protect, tourController.getalltour).post(tourController.addatour);
+tourRouter.route('/').get(tourController.getalltour).post(authController.protect,authController.restrictTo('admin', 'lead-guide'),tourController.getatour)
 
-tourRouter.route('/:id').get(tourController.getatour).patch(tourController.updateatour).delete(authController.protect,authController.restrictTo('admin', 'lead-guide'),tourController.deleteatour); 
+tourRouter.route('/:id').get(tourController.getatour).patch(authController.protect,authController.restrictTo('admin', 'lead-guide'),tourController.updateatour).delete(authController.protect,authController.restrictTo('admin', 'lead-guide'),tourController.deleteatour); 
+
+//nested route
+
+// tourRouter.route('/:tourId/reviews').post(authController.protect, authController.restrictTo('user'), reviewController.postaReview)
 
 module.exports = tourRouter;

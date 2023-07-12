@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const Review = require('./reviewModel')
 // const User  = require('./userModel')
 // const validator = require('validator');
 
@@ -110,14 +111,30 @@ const tourSchema = new mongoose.Schema(
       }
     ]
   },
+    // virtual: {
+    //   reviews: {
+    //     options:{
+    //       ref: 'Review',
+    //       foreignField: 'tour',
+    //       localField: '_id'
+    //     }
+    //   }
+    // }
+  // },
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
   }
 );
 
-tourSchema.virtual('durationWeeks').get(function() {
-  return this.duration / 7;
+// tourSchema.virtual('durationWeeks').get(function() {
+//   return this.duration / 7;
+// });
+
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'Tour',     //Field in the review model where ref is stored!!
+  localField: '_id',         //the field the is stored in the review model;
 });
 
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
@@ -156,7 +173,7 @@ tourSchema.pre(/^find/, function(next){
     this.populate({
       path: 'guides',
       select: '-__ -passwordChangedAt'
-   });
+   })
    next();
 })
 

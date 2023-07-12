@@ -4,6 +4,7 @@ const dotenv = require('dotenv')
 const AppError = require('./utils/appError')
 const tourRouter = require('./routes/tourRoute')
 const userRouter = require('./routes/userRoute')
+const reviewRouter = require('./routes/reviewRoute')
 const globalErrorHandler = require('./Controller/errorController')
 const rateLimit = require('express-rate-limit')
 const helmet = require('helmet')
@@ -52,7 +53,8 @@ app.use(express.static(`${__dirname}/public`));      //  express.jon is a middle
 
 
 app.use('/api/v1/tours', tourRouter);
-app.use('/api/v1/users', userRouter);               //mounting a new router on a route
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews',reviewRouter);               //mounting a new router on a route
 
 app.all('*', (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
