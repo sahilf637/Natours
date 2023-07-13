@@ -13,9 +13,13 @@ tourRouter.route('/getTourStats').get(tourController.getTourStats);
   
 tourRouter.route('/getMonthlyPlan/:Year').get(authController.protect,tourController.getMonthlyPlan)
 
+tourRouter.route('/tours-within/:distance/center/:latlng/unit/:unit').get(tourController.getToursWithin);
+
+tourRouter.route('/distances/:latlng/unit/:unit').get(tourController.getDistances)
+
 tourRouter.route('/get-5-cheap').get(tourController.aliasTopTours, tourController.getalltour);
 
-tourRouter.route('/').get(tourController.getalltour).post(authController.protect,authController.restrictTo('admin', 'lead-guide'),tourController.getatour)
+tourRouter.route('/').get(tourController.getalltour).post(authController.protect,authController.restrictTo('admin', 'lead-guide'),tourController.addatour)
 
 tourRouter.route('/:id').get(tourController.getatour).patch(authController.protect,authController.restrictTo('admin', 'lead-guide'),tourController.updateatour).delete(authController.protect,authController.restrictTo('admin', 'lead-guide'),tourController.deleteatour); 
 

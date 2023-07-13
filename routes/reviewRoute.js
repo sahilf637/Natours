@@ -6,7 +6,7 @@ const reviewRouter = express.Router({ mergeParams: true });
 
 reviewRouter.use(authController.protect)
 
-reviewRouter.route('/').get(authController.restrictTo('user'),reviewController.AddTourId, reviewController.postaReview);
+reviewRouter.route('/').post(authController.restrictTo('user'),reviewController.AddTourId, reviewController.postaReview).get(reviewController.getAllReview);
 
 reviewRouter.route('/:id').delete(authController.restrictTo('user','admin'),reviewController.deleteaReview).patch(authController.restrictTo('user','admin'),reviewController.updateaReview).get(reviewController.getaReview)
 
