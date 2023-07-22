@@ -1,7 +1,9 @@
 const express = require('express');
+const path = require('path')
 const morgan = require('morgan');
 const dotenv = require('dotenv')
 const AppError = require('./utils/appError')
+const viewRouter = require('./routes/viewRoutes')
 const tourRouter = require('./routes/tourRoute')
 const userRouter = require('./routes/userRoute')
 const reviewRouter = require('./routes/reviewRoute')
@@ -11,9 +13,21 @@ const helmet = require('helmet')
 const mongoSanitize = require('express-mongo-sanitize')
 const xss = require('xss-clean')
 const hpp = require('hpp')
+const cookieParser = require('cookie-parser');
+const cors = require('cors')
 
 const app = express();
 dotenv.config({ path: './config.env'}); 
+
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'))
+
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+}))
+
+app.use(express.static(path.join(__dirname,'public')));      //  express.jon is a middleware that can moddify the incoming data //all pug files request data via this static route 
 
 //MIDDLEWARES
 
@@ -35,9 +49,19 @@ const limiter = rateLimit({                 //limits the rate of request for an 
 
 app.use('/api', limiter)
 
-app.use(helmet())  //setting http secuty heads
+// app.use(
+//     helmet()
+//   );
+
+// app.use(helmet())  //setting http secuty heads  //causing a
 
 app.use(express.json({ Limit: '10kb' }));        //body parser, reading data from body to req.body
+app.use(cookieParser());
+
+// app.use((req, res, next) => {
+//     console.log(req.cookies);
+//     next();
+// })
 
 //data sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -49,9 +73,9 @@ app.use(hpp({
     whitelist: ['duration','ratingsAverage','ratingsQuantity','maxGroupSize']
 }));     //prevents parameter polution(adding multiple parameter into params)
 
-app.use(express.static(`${__dirname}/public`));      //  express.jon is a middleware that can moddify the incoming data
+//3)-Routes
 
-
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews',reviewRouter);               //mounting a new router on a route

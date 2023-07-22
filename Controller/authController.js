@@ -17,8 +17,8 @@ const createSendToken = (user, statusCode, res) => {
 
     const cookieOptions = {
         expire: new Date( Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-        secure: true,           //will only send cookie over https
-        httpOnly: true          //will send cookie in http format so that browser can not manupilate it!
+        secure: false,           //will only send cookie over https
+        httpOnly: false          //will send cookie in http format so that browser can not manupilate it!
     }
 
     if (process.env.NODE_ENV === 'production')  cookieOptions.secure = true;
@@ -71,11 +71,23 @@ exports.login = catchAsync(async (req, res, next) => {
     createSendToken(user, 201, res);
 })
 
+exports.logout = (req, res) => {
+    res.cookie('jwt','loggedout',{
+        expires: new Date(Date.now() + 10*1000),
+        httpOnly: true
+    })
+    res.status(200).json({
+        status: 'success'
+    })
+}
+
 exports.protect = catchAsync(async (req, res, next) => {
     //check if the token is there
     let token;
     if(req.headers.authorization &&  req.headers.authorization.startsWith('Bearer')){
         token = req.headers.authorization.split(' ')[1];
+    }else if(req.cookies.jwt){
+        token = req.cookies.jwt
     }
 
     if(!token){
@@ -99,6 +111,7 @@ exports.protect = catchAsync(async (req, res, next) => {
     //grant access to protected route
 
     req.user = freshuser;
+    res.locals.user = freshuser; 
     next();
 })
 
@@ -193,3 +206,34 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     //Log user in, send JWT
     createSendToken(user, 201, res);
 })
+
+
+//only for rendered pages
+exports.isLoggedIn = async (req, res, next) => {
+    try{
+    //check if the token is there
+    if(req.cookies.jwt){
+    //varification of the token
+    const decoded = await promisify(jwt.verify)(req.cookies.jwt, process.env.JWT_SECRET)  //will return a decoded user _id
+
+    //check if user still exists
+    const freshuser = await User.findById(decoded.id);
+    if(!freshuser) {
+       return next();
+    }
+    
+    //check if user changed password after token was issued
+    if(freshuser.changedPasswordAfter(decoded.iat)){
+        return next()
+    }
+    //grant access to protected route
+
+    //There is alogged in user
+    res.locals.user = freshuser;            //every bug template will be able to use the object
+    return next();
+}
+next();
+}catch(err){
+    return next();
+}
+}

@@ -22,30 +22,55 @@ const handleJWTError = new AppError('Invalid token. Please log in again', 401)
 
 const handleJWTExpiredError =  new AppError('Your Token has EXpired. Please log in again', 401) 
 
-const sendErrorDev = (err, res) => {
+const sendErrorDev = (err, req,res) => {
+    if(req.originalUrl.startsWith('/api')){
     res.status(err.statusCode).json({
         status: err.status,
         error : err,
         message: err.message,
         stack : err.stack
-    })
+    })}
+    else{
+        res.status(err.statusCode).render('error', {
+            title: 'Somthing went wrong!',
+            msg: err.message
+        })
+    }
 }
 
-const sendErrPro = (err, res) => {
+const sendErrPro = (err,req, res) => {
+    if(req.originalUrl.startsWith('/api')){
     // operational, trusted error: send message to client
     if(err.isOperational){
-    res.status(err.statusCode).json({
-        status: err.status,
-        message: err.message
-    })
-    //programming oer unknown error
-} else {
-    //send error to client
-    res.status(500).json({
-        status: 'error',
-        message: 'something went really wrong!'
-    })
-  }
+        res.status(err.statusCode).json({
+            status: err.status,
+            message: err.message
+        })
+        //programming oer unknown error
+    } else {
+        //send error to client
+        res.status(500).json({
+            status: 'error',
+            message: 'something went really wrong!'
+        })
+      }
+    }else{
+        // operational, trusted error: send message to client
+    if(err.isOperational){
+        res.status(err.statusCode).render('error', {
+            title: 'Somthing went wrong!',
+            msg: err.message
+        })
+        //programming oer unknown error
+    } else {
+        //send error to client
+        res.status(err.statusCode).render('error', {
+            title: 'Somthing went wrong!',
+            msg: 'Please try again later'
+        })
+      }
+    }
+    
 }
 
 
@@ -54,7 +79,7 @@ module.exports = (err, req, res, next) => {
     err.status = err.status || 'error'
 
     if(process.env.NODE_ENV === 'development'){
-    sendErrorDev(err, res);
+    sendErrorDev(err,req, res);
 } else if(process.env.NODE_ENV = 'production'){
     let error = JSON.parse(JSON.stringify(err));
 
